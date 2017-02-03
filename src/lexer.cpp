@@ -55,7 +55,7 @@ void lexer::next_token(std::string_view &input, LexerToken &token)
 
 std::string_view lexer::TOKEN_NAMES[(size_t)TokenType::TokenCount] =
 {
-#define TOKEN(_, str) str,
+#define TOKEN(name, _) #name,
 #include "tokens.inl"
 #undef TOKEN
 };

@@ -1,6 +1,13 @@
 #include "lexer_dfa.h"
 #include <assert.h>
 
+static std::pair<const char *, lexer::TokenType> operator_list[] =
+{
+#define TOKEN(name, str) { str, lexer::TokenType::name },
+#include "tokens_operators.inl"
+#undef TOKEN
+};
+
 lexer::Dfa::Dfa()
 {
 	using namespace utf;
@@ -25,6 +32,113 @@ lexer::Dfa::Dfa()
 	identifier_emb->Transition(identifier, classifiers::emoji_modifier);
 	identifier_emb->Transition(identifier, classifiers::emoji_presentation);
 	identifier_emb->Transition(identifier, classifiers::xid_continue);
+
+	/////////////////////////////////////////////////////////////////
+	// Integer literals
+	auto int_literal = new DfaNode(TokenType::IntegerLiteral);
+	auto int_separator = new DfaNode;
+
+	auto zero_prefix = new DfaNode(TokenType::IntegerLiteral);
+
+	auto hex_start = new DfaNode;
+	auto hex_literal = new DfaNode(TokenType::HexLiteral);
+	auto hex_separator = new DfaNode;
+
+	auto oct_start = new DfaNode;
+	auto oct_literal = new DfaNode(TokenType::OctalLiteral);
+	auto oct_separator = new DfaNode;
+
+	auto bin_start = new DfaNode;
+	auto bin_literal = new DfaNode(TokenType::BinaryLiteral);
+	auto bin_separator = new DfaNode;
+
+	root.Transition(zero_prefix, '0');
+	root.Transition(int_literal, '1', '9');
+	
+	int_literal->Transition(int_literal, '0', '9');
+	int_literal->Transition(int_separator, '_');
+	int_separator->Transition(int_literal, '0', '9');
+
+	zero_prefix->Transition(int_literal, '0', '9');
+	zero_prefix->Transition(hex_start, 'x');
+	zero_prefix->Transition(oct_start, 'o');
+	zero_prefix->Transition(bin_start, 'b');
+
+	hex_start->Transition(hex_literal, '0', '9');
+	hex_start->Transition(hex_literal, 'A', 'F');
+	hex_start->Transition(hex_literal, 'a', 'f');
+	hex_literal->Transition(hex_literal, '0', '9');
+	hex_literal->Transition(hex_literal, 'A', 'F');
+	hex_literal->Transition(hex_literal, 'a', 'f');
+	hex_literal->Transition(hex_separator, '_');
+	hex_separator->Transition(hex_literal, '0', '9');
+	hex_separator->Transition(hex_literal, 'A', 'F');
+	hex_separator->Transition(hex_literal, 'a', 'f');
+
+	oct_start->Transition(oct_literal, '0', '7');
+	oct_literal->Transition(oct_literal, '0', '7');
+	oct_literal->Transition(oct_separator, '_');
+	oct_separator->Transition(oct_literal, '0', '7');
+
+	bin_start->Transition(bin_literal, '0', '1');
+	bin_literal->Transition(bin_literal, '0', '1');
+	bin_literal->Transition(bin_separator, '_');
+	bin_separator->Transition(bin_literal, '0', '1');
+
+	/////////////////////////////////////////////////////////////////
+	// Float literals
+	auto dotted_float = new DfaNode;
+	auto float_literal = new DfaNode(TokenType::FloatLiteral);
+	auto float_separator = new DfaNode;
+
+	int_literal->Transition(dotted_float, '.');
+	zero_prefix->Transition(dotted_float, '.');
+
+	dotted_float->Transition(float_literal, '0', '9');
+	float_literal->Transition(float_literal, '0', '9');
+	float_literal->Transition(float_separator, '_');
+	float_separator->Transition(float_literal, '0', '9');
+
+	/////////////////////////////////////////////////////////////////
+	// Scientific notation
+	auto scientific_start = new DfaNode;
+	auto signed_scientific = new DfaNode;
+	auto scientific = new DfaNode(TokenType::FloatLiteral);
+
+	float_literal->Transition(scientific_start, 'e');
+	
+	scientific_start->Transition(signed_scientific, '+');
+	scientific_start->Transition(signed_scientific, '-');
+	scientific_start->Transition(scientific, '0', '9');
+	signed_scientific->Transition(scientific, '0', '9');
+	scientific->Transition(scientific, '0', '9');
+
+	/////////////////////////////////////////////////////////////////
+	// Operators
+	for (auto &op : operator_list)
+	{
+		auto str = op.first;
+		auto node = &root;
+
+		while (str[0])
+		{
+			auto it = node->byte_edges.find(str[0]);
+			if (it == node->byte_edges.end())
+			{
+				auto new_node = new DfaNode;
+				node->Transition(new_node, str[0]);
+				node = new_node;
+			}
+			else
+			{
+				node = it->second.node;
+			}
+
+			str = str + 1;
+		}
+
+		node->token.type = op.second;
+	}
 }
 
 lexer::Dfa::~Dfa()
