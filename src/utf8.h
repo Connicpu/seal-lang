@@ -6,5 +6,5 @@
 namespace utf
 {
     using codepoint = uint32_t;
-    bool next_char(std::string_view &utf8, codepoint &c);
+	size_t next_char(std::string_view &utf8, codepoint &c);
 }

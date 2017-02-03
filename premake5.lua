@@ -8,20 +8,21 @@ workspace "seal-lang"
     platforms { "x64" }
 
     vpaths {
-        Headers = "**.h",
-        Source = "**.cpp",
+        Headers = { "**.h" },
+        Inlines = { "**.inl" },
+        Source = { "**.cpp" },
     }
 
     defines { "_USE_MATH_DEFINES" }
 
 filter "configurations:Debug"
     defines { "DEBUG" }
-    flags { "Symbols" }
+    symbols "On"
 
 filter "configurations:Release"
     defines { "NDEBUG" }
-    flags { "Symbols" }
     optimize "On"
+    symbols "On"
 
 filter "system:windows"
     defines { "NOMINMAX", "WIN32_LEAN_AND_MEAN" }
@@ -29,24 +30,31 @@ filter "system:windows"
 
 filter "not system:windows"
     toolset "clang"
-    buildoptions { "-std=c++14" }
+    buildoptions { "-std=c++1z" }
 
 filter "action:vs*"
     buildoptions { "/std:c++latest" }
 
 project "seal-lang"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C++"
+
+    includedirs { "include" }
 
     files {
         "src/*.cpp",
         "src/*.h",
+        "src/*.inl",
         "include/*.h",
+        "include/*.inl",
     }
 
 project "seal-tests"
     kind "ConsoleApp"
     language "C++"
+
+    includedirs { "include" }
+    links { "seal-lang" }
 
     files {
         "tests/*.cpp",

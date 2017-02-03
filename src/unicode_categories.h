@@ -8,8 +8,13 @@ namespace utf
 
     namespace classifiers
     {
+		bool whitespace(codepoint c);
+
         bool xid_start(codepoint c);
         bool xid_continue(codepoint c);
-        bool emoji(codepoint c);
+
+		bool emoji_presentation(codepoint c);
+		bool emoji_modifier(codepoint c);
+		bool emoji_modifier_base(codepoint c);
     }
 }
