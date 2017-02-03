@@ -3,7 +3,21 @@
 
 int main()
 {
-	std::string_view input = u8"[Hi, there, 😍 + 👱🏼, 0, 1, 01, 0x1, 0b1000_0010, 1.0, 2.0f, 1.6e10, 1.2e-5]";
+	std::string_view input =
+		"use std::io\n"
+		"\n"
+		"pub fn write_that()? {\n"
+		"    let mut file = io::open(\"test.txt\", io::APPEND)?\n"
+		"    file.write(\"hooplah\\n\")?\n"
+		"}\n"
+		"\n"
+		"fn main() {\n"
+		"    catch e = write_that() {\n"
+		"        print(e)\n"
+		"    }\n"
+		"}\n";
+
+	std::cout << input << std::endl;
 
 	lexer::LexerToken token;
 	do

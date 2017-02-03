@@ -114,6 +114,93 @@ lexer::Dfa::Dfa()
 	scientific->Transition(scientific, '0', '9');
 
 	/////////////////////////////////////////////////////////////////
+	// Strings
+	auto string_body = new DfaNode;
+	auto string_escape = new DfaNode;
+	auto string_literal = new DfaNode(TokenType::StringLiteral);
+
+	auto string_2b_0 = new DfaNode;
+	auto string_2b_1 = new DfaNode;
+
+	auto string_4b_0 = new DfaNode;
+	auto string_4b_1 = new DfaNode;
+	auto string_4b_2 = new DfaNode;
+	auto string_4b_3 = new DfaNode;
+
+	auto string_6b_0 = new DfaNode;
+	auto string_6b_1 = new DfaNode;
+	auto string_6b_2 = new DfaNode;
+	auto string_6b_3 = new DfaNode;
+	auto string_6b_4 = new DfaNode;
+	auto string_6b_5 = new DfaNode;
+	auto string_6b_6 = new DfaNode;
+
+	root.Transition(string_body, '"');
+	
+	string_body->Transition(string_body);
+	string_body->Transition(string_literal, '"');
+	string_body->Transition(string_escape, '\\');
+	string_escape->Transition(string_body);
+	string_escape->Transition(string_2b_0, 'x');
+	string_escape->Transition(string_4b_0, 'u');
+	string_escape->Transition(string_6b_0, 'U');
+
+	string_2b_0->Transition(string_2b_1, '0', '9');
+	string_2b_0->Transition(string_2b_1, 'A', 'F');
+	string_2b_0->Transition(string_2b_1, 'a', 'f');
+	string_2b_1->Transition(string_body, '0', '9');
+	string_2b_1->Transition(string_body, 'A', 'F');
+	string_2b_1->Transition(string_body, 'a', 'f');
+
+	string_4b_0->Transition(string_4b_1, '0', '9');
+	string_4b_0->Transition(string_4b_1, 'A', 'F');
+	string_4b_0->Transition(string_4b_1, 'a', 'f');
+	string_4b_1->Transition(string_4b_2, '0', '9');
+	string_4b_1->Transition(string_4b_2, 'A', 'F');
+	string_4b_1->Transition(string_4b_2, 'a', 'f');
+	string_4b_2->Transition(string_4b_3, '0', '9');
+	string_4b_2->Transition(string_4b_3, 'A', 'F');
+	string_4b_2->Transition(string_4b_3, 'a', 'f');
+	string_4b_3->Transition(string_body, '0', '9');
+	string_4b_3->Transition(string_body, 'A', 'F');
+	string_4b_3->Transition(string_body, 'a', 'f');
+
+	string_6b_0->Transition(string_6b_1, '+');
+	string_6b_1->Transition(string_6b_2, '0', '9');
+	string_6b_1->Transition(string_6b_2, 'A', 'F');
+	string_6b_1->Transition(string_6b_2, 'a', 'f');
+	string_6b_2->Transition(string_6b_3, '0', '9');
+	string_6b_2->Transition(string_6b_3, 'A', 'F');
+	string_6b_2->Transition(string_6b_3, 'a', 'f');
+	string_6b_3->Transition(string_6b_4, '0', '9');
+	string_6b_3->Transition(string_6b_4, 'A', 'F');
+	string_6b_3->Transition(string_6b_4, 'a', 'f');
+	string_6b_4->Transition(string_6b_5, '0', '9');
+	string_6b_4->Transition(string_6b_5, 'A', 'F');
+	string_6b_4->Transition(string_6b_5, 'a', 'f');
+	string_6b_5->Transition(string_6b_6, '0', '9');
+	string_6b_5->Transition(string_6b_6, 'A', 'F');
+	string_6b_5->Transition(string_6b_6, 'a', 'f');
+	string_6b_6->Transition(string_body, '0', '9');
+	string_6b_6->Transition(string_body, 'A', 'F');
+	string_6b_6->Transition(string_body, 'a', 'f');
+
+	// Fallbacks so we can keep parsing on bad escapes
+	string_2b_0->Transition(string_body);
+	string_2b_1->Transition(string_body);
+	string_4b_0->Transition(string_body);
+	string_4b_1->Transition(string_body);
+	string_4b_2->Transition(string_body);
+	string_4b_3->Transition(string_body);
+	string_6b_0->Transition(string_body);
+	string_6b_1->Transition(string_body);
+	string_6b_2->Transition(string_body);
+	string_6b_3->Transition(string_body);
+	string_6b_4->Transition(string_body);
+	string_6b_5->Transition(string_body);
+	string_6b_6->Transition(string_body);
+
+	/////////////////////////////////////////////////////////////////
 	// Operators
 	for (auto &op : operator_list)
 	{

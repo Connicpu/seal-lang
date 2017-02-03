@@ -3,7 +3,32 @@
 #include "lexer_dfa.h"
 #include <string>
 
-using namespace std::string_literals;
+std::string_view lexer::TOKEN_NAMES[(size_t)TokenType::TokenCount] =
+{
+#define TOKEN(name, _) #name,
+#include "tokens.inl"
+#undef TOKEN
+};
+
+using keyword_entry = std::pair<std::string_view, lexer::TokenType>;
+static const keyword_entry KEYWORDS[] =
+{
+#define TOKEN(name, str) { str, lexer::TokenType::name },
+#include "tokens_keywords.inl"
+#undef TOKEN
+};
+
+int keyword_cmp(const void *vkey, const void *ventry)
+{
+	auto &key = *(const std::string_view *)vkey;
+	auto &value = *(const keyword_entry *)ventry;
+
+	if (key < value.first)
+		return -1;
+	if (key > value.first)
+		return 1;
+	return 0;
+}
 
 void lexer::next_token(std::string_view &input, LexerToken &token)
 {
@@ -44,6 +69,16 @@ void lexer::next_token(std::string_view &input, LexerToken &token)
 		input = original.substr(last_accepting.first);
 		token.text = original.substr(0, last_accepting.first);
 		token.token = last_accepting.second->token;
+
+		if (token.token.type == TokenType::Identifier)
+		{
+			auto elem_size = sizeof(keyword_entry);
+			auto count = sizeof(KEYWORDS) / sizeof(keyword_entry);
+			if (auto entry = std::bsearch(&token.text, KEYWORDS, count, elem_size, keyword_cmp))
+			{
+				token.token.type = ((const keyword_entry *)entry)->second;
+			}
+		}
 	}
 	else
 	{
@@ -52,10 +87,3 @@ void lexer::next_token(std::string_view &input, LexerToken &token)
 		token.token.type = TokenType::Invalid;
 	}
 }
-
-std::string_view lexer::TOKEN_NAMES[(size_t)TokenType::TokenCount] =
-{
-#define TOKEN(name, _) #name,
-#include "tokens.inl"
-#undef TOKEN
-};

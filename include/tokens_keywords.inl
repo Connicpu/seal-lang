@@ -3,6 +3,7 @@
 
 TOKEN(As, "as")
 TOKEN(Break, "break")
+TOKEN(Catch, "catch")
 TOKEN(Const, "const")
 TOKEN(Continue, "continue")
 TOKEN(Else, "else")
