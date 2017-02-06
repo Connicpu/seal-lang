@@ -1,24 +1,17 @@
 ﻿#include "lexer.h"
 #include <iostream>
+#include <vector>
 
 int main()
 {
 	std::string_view input =
-		"use std::io\n"
-		"\n"
-		"pub fn write_that()? {\n"
-		"    let mut file = io::open(\"test.txt\", io::APPEND)?\n"
-		"    file.write(\"hooplah\\n\")?\n"
-		"}\n"
-		"\n"
-		"fn main() {\n"
-		"    catch e = write_that() {\n"
-		"        print(e)\n"
-		"    }\n"
+		"struct Test {\n"
+		"    field: i32,\n"
 		"}\n";
 
 	std::cout << input << std::endl;
 
+	std::vector<lexer::LexerToken> tokens;
 	lexer::LexerToken token;
 	do
 	{
@@ -27,7 +20,7 @@ int main()
 		// Ignore whitespace
 		if (token.token.type != lexer::TokenType::Whitespace)
 		{
-			std::cout << lexer::TOKEN_NAMES[token.token.raw] << ": \"" << token.text << '"' << std::endl;
+			tokens.push_back(token);
 		}
 
 	} while (token.text.size());
