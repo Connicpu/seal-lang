@@ -11,6 +11,7 @@ TOKEN(CharacterLiteral, "CharacterLiteral")
 TOKEN(Whitespace, "Whitespace")
 TOKEN(SingleLineComment, "SingleLineComment")
 TOKEN(MultiLineComment, "MultiLineComment")
+TOKEN(DocComment, "DocComment")
 TOKEN(Label, "Label")
 
 // Every value below this value aligns with the list of symbol names / values provided in TokenSymbols.txt (remember the +1)

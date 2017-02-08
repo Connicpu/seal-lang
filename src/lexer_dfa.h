@@ -7,64 +7,67 @@
 
 namespace lexer
 {
-	struct DfaNode;
+    struct DfaNode;
 
-	struct UnicodeMatch
-	{
-		bool peek;
-		utf::unicode_classifier classifier;
-		DfaNode *node;
-	};
+    using DfaError = std::optional<std::string_view>;
 
-	struct ByteMatch
-	{
-		bool peek;
-		char match;
-		DfaNode *node;
-	};
+    struct UnicodeMatch
+    {
+        DfaError error_token;
+        utf::unicode_classifier classifier;
+        DfaNode *node;
+    };
 
-	struct ByteRangeMatch
-	{
-		bool peek;
-		char begin;
-		char end;
-		DfaNode *node;
-	};
+    struct ByteMatch
+    {
+        DfaError error_token;
+        char match;
+        DfaNode *node;
+    };
 
-	struct DfaNode
-	{
-		DfaNode()
-		{
-			default_edge = nullptr;
-			token.raw = 0;
-		}
+    struct ByteRangeMatch
+    {
+        DfaError error_token;
+        char begin;
+        char end;
+        DfaNode *node;
+    };
 
-		DfaNode(TokenType tt)
-		{
-			default_edge = nullptr;
-			token.type = tt;
-		}
+    struct DfaNode
+    {
+        DfaNode()
+        {
+            default_edge = nullptr;
+            token.raw = 0;
+        }
 
-		void Transition(DfaNode *node);
-		void Transition(DfaNode *node, char c, bool peek = false);
-		void Transition(DfaNode *node, char begin, char end, bool peek = false);
-		void Transition(DfaNode *node, utf::unicode_classifier classifier, bool peek = false);
+        DfaNode(TokenType tt)
+        {
+            default_edge = nullptr;
+            token.type = tt;
+        }
 
-		auto TryTransition(std::string_view &input) const -> std::tuple<bool, size_t, DfaNode *>;
+        void Transition(DfaNode *node, DfaError err = {});
+        void Transition(DfaNode *node, char c, DfaError err = {});
+        void Transition(DfaNode *node, char begin, char end, DfaError err = {});
+        void Transition(DfaNode *node, utf::unicode_classifier classifier, DfaError err = {});
 
-		TokenAccepting token;
+        auto TryTransition(std::string_view &input) const->std::tuple<bool, size_t, DfaNode *, DfaError>;
 
-		std::unordered_map<char, ByteMatch> byte_edges;
-		std::vector<ByteRangeMatch> byte_range_edges;
-		std::vector<UnicodeMatch> unicode_edges;
-		DfaNode *default_edge;
-	};
+        TokenAccepting token;
 
-	struct Dfa
-	{
-		Dfa();
-		~Dfa();
+        std::unordered_map<char, ByteMatch> byte_edges;
+        std::vector<ByteRangeMatch> byte_range_edges;
+        std::vector<UnicodeMatch> unicode_edges;
+        DfaNode *default_edge;
+        DfaError default_error;
+    };
 
-		DfaNode root;
-	};
+    struct Dfa
+    {
+        Dfa();
+        ~Dfa();
+
+        DfaNode root;
+    };
 }

@@ -1,31 +1,39 @@
 #pragma once
 
-#include <string_view>
 #include <stdint.h>
+#include <string_view>
+#include <optional>
 
 namespace lexer
 {
-	enum class TokenType : int32_t
-	{
+    enum class TokenType : int32_t
+    {
 #define TOKEN(name, _) name,
 #include "tokens.inl"
 #undef TOKEN
-		TokenCount
-	};
+        TokenCount
+    };
 
-	extern std::string_view TOKEN_NAMES[(size_t)TokenType::TokenCount];
+    extern std::string_view TOKEN_NAMES[(size_t)TokenType::TokenCount];
 
-	union TokenAccepting
-	{
-		TokenType type;
-		int32_t raw;
-	};
+    union TokenAccepting
+    {
+        TokenType type;
+        int32_t raw;
+    };
 
-	struct LexerToken
-	{
-		TokenAccepting token;
-		std::string_view text;
-	};
+    struct TokenError
+    {
+        size_t location;
+        std::string_view message;
+    };
 
-	void next_token(std::string_view &input, LexerToken &token);
+    struct LexerToken
+    {
+        TokenAccepting token;
+        std::string_view text;
+        std::optional<TokenError> error;
+    };
+
+    void next_token(std::string_view &input, LexerToken &token);
 }
